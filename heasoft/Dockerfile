@@ -48,7 +48,7 @@ WORKDIR /home/heasoft
 #     && rm -r heasoft-${HEASOFT_VERSION}src.tar.gz heasoft-${HEASOFT_VERSION}/suzaku
 # ```
 # then copy in the source code:
-COPY extract/heasoft-${HEASOFT_VERSION} /home/heasoft/heasoft-${HEASOFT_VERSION}
+COPY heasoft-${HEASOFT_VERSION} /home/heasoft/heasoft-${HEASOFT_VERSION}
  
 WORKDIR /home/heasoft/heasoft-${HEASOFT_VERSION}/BUILD_DIR/
 RUN ./configure --prefix=/opt/heasoft
