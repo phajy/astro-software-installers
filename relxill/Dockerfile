@@ -27,3 +27,5 @@ WORKDIR /home/heasoft
 
 # Get XSPEC to automatically load the relxill model every time it starts
 RUN echo "lmod relxill /home/relxill" >> ~/.xspec/xspec.rc
+
+CMD [ "fversion" ]
