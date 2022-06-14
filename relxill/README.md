@@ -17,8 +17,8 @@ cd astro-software-installers/relxill
 
 Next, download the source code for HEASoft:
 ```bash
-    wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_model_v1.4.3.tgz
-    wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_tables.tgz
+wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_model_v1.4.3.tgz
+wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_tables.tgz
 ```
 
 The Dockerfile will copy the source from the host machine to avoid having to re-download it incase anything goes wrong.
@@ -27,5 +27,5 @@ Finally, build the image in the usual way, with the option of specifying archite
 
 - ARM and Apple Silicon
 ```bash
-docker build . -t relxill --build-arg ARCH=aarch64
+docker build . -t relxill:1.4.3-aarch64 --build-arg ARCH=aarch64
 ```

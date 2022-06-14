@@ -11,7 +11,8 @@ ARG ARCH=aarch64
 
 WORKDIR /home/relxill
 
-# Comment in/out the download or copy options
+# Assumes the model and tables have already been downloaded
+# If this isn't the case you can comment out the COPY commands and comment in the RUN commands
 # RUN wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_model_v1.4.3.tgz
 COPY relxill_model_v1.4.3.tgz .
 # RUN wget http://www.sternwarte.uni-erlangen.de/~dauser/research/relxill/relxill_tables.tgz
@@ -24,4 +25,5 @@ RUN ./compile_relxill.sh
 
 WORKDIR /home/heasoft
 
+# Get XSPEC to automatically load the relxill model every time it starts
 RUN echo "lmod relxill /home/relxill" >> ~/.xspec/xspec.rc
