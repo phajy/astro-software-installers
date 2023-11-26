@@ -1,7 +1,7 @@
 # Dockerfile for complete HEASoft downloads
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
-ARG HEASOFT_VERSION=6.30.1
+ARG HEASOFT_VERSION=6.32.1
 # architectures: x86_64 or aarch64
 ARG ARCH=aarch64
 
@@ -22,13 +22,16 @@ RUN apt-get update \
 	ncurses-dev \
 	perl-modules \
 	python3-dev \
-	python3-astropy \
-	python3-numpy \
+	python3-astroquery \
+	python3-pandas \
 	python3-pip \
-	python3-scipy \
+	python3-pyvo \
 	python3-setuptools \
 	python-is-python3 \
+	ipython3 \
+	saods9 \
 	tcsh \
+	vim \
 	wget \
 	xorg-dev \
  && apt-get clean \
@@ -40,19 +43,10 @@ RUN groupadd heasoft && useradd -r -m -g heasoft heasoft \
 
 WORKDIR /home/heasoft
 
-# do the wget on the host machine -- less likely to go wrong later on. also have to remove suzaku, since architecture issues
-# and nasty segfaulting
-# ```bash
-# wget "https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}src.tar.gz" \
-#     && tar xfz heasoft-${HEASOFT_VERSION}src.tar.gz \
-#     && rm -r heasoft-${HEASOFT_VERSION}src.tar.gz heasoft-${HEASOFT_VERSION}/suzaku
-# ```
-# then copy in the source code:
 COPY heasoft-${HEASOFT_VERSION} /home/heasoft/heasoft-${HEASOFT_VERSION}
- 
+
 WORKDIR /home/heasoft/heasoft-${HEASOFT_VERSION}/BUILD_DIR/
 RUN ./configure --prefix=/opt/heasoft
-
 
 # this can clutter the build output if something fails
 # to increase the log size for debugging, use docker buildx:
@@ -73,7 +67,7 @@ RUN /bin/bash -c 'cd /opt/heasoft/; for loop in ${ARCH}*/*; do ln -sf $loop; don
  && rm -rf Xspec/src/spectral
 
 RUN cp -p /home/heasoft/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
- 
+
 # Configure shells...
 RUN /bin/echo >> /home/heasoft/.bashrc \
  && /bin/echo '# Initialize HEASoft environment' >> /home/heasoft/.bashrc \
@@ -143,3 +137,4 @@ ENV CC=/usr/bin/gcc \
     CALDBALIAS=/opt/heasoft/caldb/alias_config.fits
 
 CMD [ "fversion" ]
+
