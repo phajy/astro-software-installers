@@ -1,9 +1,9 @@
 # Dockerfile for complete HEASoft downloads
-FROM ubuntu:22.04
+FROM ubuntu:22.04 as build
 
-ARG HEASOFT_VERSION=6.32.1
+ARG HEASOFT_VERSION=6.33.1
 # architectures: x86_64 or aarch64
-ARG ARCH=aarch64
+ARG ARCH=x86_64
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,34 +14,30 @@ RUN apt-get update \
 	gcc \
 	gfortran \
 	g++ \
+	curl \
 	libcurl4 \
 	libcurl4-gnutls-dev \
 	libncurses5-dev \
 	libreadline6-dev \
+	libfile-which-perl \
+	libdevel-checklib-perl \
 	make \
 	ncurses-dev \
 	perl-modules \
 	python3-dev \
-	python3-astroquery \
-	python3-pandas \
 	python3-pip \
-	python3-pyvo \
 	python3-setuptools \
+	python3-astropy python3-numpy python3-scipy python3-matplotlib \
 	python-is-python3 \
-	ipython3 \
-	saods9 \
 	tcsh \
-	vim \
+	lsb-release \
 	wget \
 	xorg-dev \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-RUN groupadd heasoft && useradd -r -m -g heasoft heasoft \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd heasoft && useradd -r -m -g heasoft heasoft \
  && mkdir -p /opt/heasoft/caldb \
  && chown -R heasoft:heasoft /opt/heasoft
-
-WORKDIR /home/heasoft
 
 COPY heasoft-${HEASOFT_VERSION} /home/heasoft/heasoft-${HEASOFT_VERSION}
 
@@ -56,17 +52,21 @@ RUN ./configure --prefix=/opt/heasoft
 # ```
 # unfortunately this method doesn't seem to cache layers very well
 RUN make
-RUN make install
-RUN make clean
+
+# update pip to be compatible with latest pyproject.toml versions
+RUN apt update \
+    && apt-get install -y python3-pip \
+    && python3 -m pip install -U pip
+
+RUN make install && make clean
 
 # make sure we pick the right architecture, else we won't find the binaries
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in ${ARCH}*/*; do ln -sf $loop; done' \
  && cd /home/heasoft/heasoft-${HEASOFT_VERSION} \
  && cp -p Xspec/BUILD_DIR/hmakerc /opt/heasoft/bin/ \
  && cp -p Xspec/BUILD_DIR/Makefile-std /opt/heasoft/bin/ \
- && rm -rf Xspec/src/spectral
-
-RUN cp -p /home/heasoft/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
+ && rm -rf Xspec/src/spectral \
+ && cp -p /home/heasoft/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
 
 # Configure shells...
 RUN /bin/echo >> /home/heasoft/.bashrc \
