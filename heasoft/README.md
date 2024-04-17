@@ -13,13 +13,13 @@ Docker images available for x86 and arm architectures.
 - for x86_64 based linux and MacOS:
 
 ```bash
-docker pull fjebaker/heasoft:6.32.1-amd64
+docker pull fjebaker/heasoft:6.33.1-amd64
 ```
 
 - for aarch64 linux and Apple Silicon MacOS:
 
 ```bash
-docker pull fjebaker/heasoft:6.32.1-aarch64
+docker pull fjebaker/heasoft:6.33.1-aarch64
 ```
 
 Dockerfiles for these images are modified from the [HEASoft docker installation](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html). In particular, the ARM version of this image does not include SUZAKU mission specifics.
@@ -40,7 +40,7 @@ Next, download the source code for HEASoft. This can either be done using the su
 or with the one-liner:
 
 ```bash
-HEASOFT_VERSION=6.30.1 wget "https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}src.tar.gz" \
+HEASOFT_VERSION=6.33.1 wget "https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}src.tar.gz" \
     && tar xfz heasoft-${HEASOFT_VERSION}src.tar.gz \
     && rm -r heasoft-${HEASOFT_VERSION}src.tar.gz heasoft-${HEASOFT_VERSION}/suzaku
 ```
