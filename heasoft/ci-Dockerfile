@@ -33,11 +33,15 @@ RUN apt-get update \
 	lsb-release \
 	wget \
 	xorg-dev \
+	vim \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && groupadd heasoft && useradd -r -m -g heasoft heasoft \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd heasoft && useradd -r -m -g heasoft heasoft \
  && mkdir -p /opt/heasoft/caldb \
  && chown -R heasoft:heasoft /opt/heasoft
+
+WORKDIR /home/heasoft
 
 COPY heasoft-${HEASOFT_VERSION} /home/heasoft/heasoft-${HEASOFT_VERSION}
 
@@ -53,20 +57,39 @@ RUN ./configure --prefix=/opt/heasoft
 # unfortunately this method doesn't seem to cache layers very well
 RUN make
 
+# see e.g. https://github.com/pypa/pip/issues/11053
+# setuptools from apt system seems to be broken
+# so purge and remove it, but only now, because removing
+# it too early seems to also break things
+RUN apt purge -y python3-setuptools
+# update registries so we can install pip
+RUN apt update
+RUN apt-get install -y python3-pip
 # update pip to be compatible with latest pyproject.toml versions
-RUN apt update \
-    && apt-get install -y python3-pip \
-    && python3 -m pip install -U pip
+RUN python3 -m pip install -U pip
 
-RUN make install && make clean
+RUN make install
+RUN make clean
 
 # make sure we pick the right architecture, else we won't find the binaries
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in ${ARCH}*/*; do ln -sf $loop; done' \
  && cd /home/heasoft/heasoft-${HEASOFT_VERSION} \
  && cp -p Xspec/BUILD_DIR/hmakerc /opt/heasoft/bin/ \
  && cp -p Xspec/BUILD_DIR/Makefile-std /opt/heasoft/bin/ \
- && rm -rf Xspec/src/spectral \
- && cp -p /home/heasoft/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
+ && rm -rf Xspec/src/spectral
+
+RUN cp -p /home/heasoft/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
+RUN rm -rf /opt/heasoft/spectral/modelData
+
+FROM ubuntu:22.04
+COPY --from=build /opt/heasoft /opt/heasoft
+COPY --from=build /usr /usr
+
+RUN groupadd heasoft && useradd -r -m -g heasoft heasoft \
+ && mkdir -p /opt/heasoft/caldb \
+ && chown -R heasoft:heasoft /opt/heasoft
+
+WORKDIR /home/heasoft
 
 # Configure shells...
 RUN /bin/echo >> /home/heasoft/.bashrc \
@@ -95,10 +118,6 @@ RUN /bin/echo >> /home/heasoft/.bashrc \
  && /bin/echo 'setenv CALDB https://heasarc.gsfc.nasa.gov/FTP/caldb' >> /home/heasoft/.cshrc \
  && /bin/echo 'setenv CALDBCONFIG /opt/heasoft/caldb/caldb.config' >> /home/heasoft/.cshrc \
  && /bin/echo 'setenv CALDBALIAS /opt/heasoft/caldb/alias_config.fits' >> /home/heasoft/.cshrc
-
-RUN cd /opt/heasoft/caldb \
-    && wget https://heasarc.gsfc.nasa.gov/FTP/caldb/software/tools/caldb.config \
-    && wget https://heasarc.gsfc.nasa.gov/FTP/caldb/software/tools/alias_config.fits
 
 USER heasoft
 WORKDIR /home/heasoft
